@@ -1,0 +1,8 @@
+{
+     "remote port": 7000, 
+     "outpass": "<outpass>", 
+     "servername": "<servername from links.conf here>", 
+     "remote host": "<host>", 
+     "inpass": "<inpass>", 
+     "sid": "<sid>"
+}
