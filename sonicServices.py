@@ -45,8 +45,8 @@ CAPAB MODULES m_allowinvite.so,m_alltime.so,m_auditorium.so,m_banexception.so,m_
 CAPAB MODULES m_nokicks.so,m_nonicks.so,m_nonotice.so,m_operchans.so,m_permchannels.so,m_redirect.so,m_remove.so,m_sajoin.so,m_samode.so,m_sanick.so,m_sapart.so,m_saquit.so, m_services_account.so,m_servprotect.so,m_sethost.so,m_setident.so,m_setname.so,m_showwhois.so,m_shun.so,m_silence.so,m_stripcolor.so,m_svshold.so,m_swhois.so,m_timebans.so, m_watch.so
 CAPAB CAPABILITIES :NICKMAX=32 HALFOP=1 CHANMAX=65 MAXMODES=20 IDENTMAX=12 MAXQUIT=256 MAXTOPIC=308 MAXKICK=256 MAXGECOS=129 MAXAWAY=201 IP6NATIVE=0 IP6SUPPORT=1 PROTOCOL=1201 CHALLENGE=a%%'ski?#-uo1y5u'kka PREFIX=(qaohv)~&@%%+ CHANMODES=Ibeg,k,FJLfjl,ABCDGKMNOPQRSTcimnpstu SVSPART=1
 CAPAB END
-SERVER %(servername)s %(password)s 0 7LT :sonicServices
-""" % dict(servername=self.servername, password=self.outpass))
+SERVER %(servername)s %(password)s 0 %(sid)s :sonicServices
+""" % dict(servername=self.servername, password=self.outpass, sid=self.sid))
         self.dataReceived()
     def dataReceived(self) :
         try :
