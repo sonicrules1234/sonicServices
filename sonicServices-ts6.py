@@ -10,7 +10,7 @@ class sonicServices :
         self.sid = kwargs["sid"]
         self.ssl = kwargs["ssl"]
         self.buff = ""
-        self.bursting = True
+        self.bursting = False
         if self.ssl :
             self.sock = ssl.wrap_socket(self.sock)
         hookstartup.main(self, world)
@@ -42,26 +42,27 @@ class sonicServices :
     def prettify(self, line) :
         if not line.startswith("CAPAB") :
             words = line.split(" ")
+            if words[0].lower() == "pass" :
+                if words[1] != self.inpass :
+                    self.sock.close()
             if words[0].lower() == "server" :
                 self.authServer(words)
             if len(words) == 4 :
                 if words[1].lower() == "ping" :
-                    self.qsend("PONG %s %s" % (words[3], words[2]))
+                    self.qsend("PONG %s" % (words[2]))
             #if len(line.split(":")[0].strip().split(" ")) == 11 :
             if len(words) > 1: 
                 if words[1].lower() == "uid" :
                     serversid = words[0][1:]
-                    uid = words[2]
-                    nick = words[4]
-                    hostname = words[5]
-                    displayedhost = words[6]
-                    ident = words[7]
+                    uid = words[9]
+                    nick = words[2]
+                    hostname = words[7]
+                    ident = words[6]
                     ip = words[8]
-                    connecttime = words[9]
-                    modes = words[10]
-                    realname = " ".join(words[11:])[1:]
+                    modes = words[5]
+                    realname = " ".join(words[10:])[1:]
                     world.usermap[uid] = nick
-                    world.nicks[nick] = {"serversid":serversid, "uid":uid, "hostname":hostname, "displayedhost":displayedhost, "ident":ident, "ip":ip, "signontime":connecttime, "modes":modes, "realname":realname}
+                    world.nicks[nick] = {"serversid":serversid, "uid":uid, "hostname":hostname, "ident":ident, "ip":ip, "modes":modes, "realname":realname}
                     print "Added user " + uid
                     if not self.bursting :
                         self.channelsend("#services", "%(nick)s!%(ident)s@%(hostname)s has connected." % dict(nick=nick, ident=ident, hostname=hostname))
@@ -98,24 +99,21 @@ class sonicServices :
         else: extra = ""
         self.send(":" + self.sid + extra + message)
     def authServer(self, words) :
-        if words[2] == self.inpass :
-            self.qsend("BURST %d" % (time.time()))
-            self.qsend("VERSION :SonicServices")
-            self.qsend("UID %sAAAAAA %d sonicServices %s %s services 127.0.0.1 %d +iosw +ACKNOQcdfgklnoqtx :sonicServices" % (self.sid, time.time(), self.servername, self.servername, time.time()))
-            self.qsend("FJOIN #services %d + :o,%sAAAAAA" % (time.time(), self.sid))
-            self.qsend("ENDBURST %d" % (time.time()))
-            self.qsend("SVSMODE #services +o %sAAAAAA" % (self.sid))
+            #self.qsend("BURST %d" % (time.time()))
+            #self.qsend("VERSION :SonicServices")
+            self.qsend("UID sonicServices 0 %(timestamp)d +iosw sonicServices %(hostname)s 127.0.0.1 %(sid)sAAAAAA :sonicServices" % (sid=self.sid, timestamp=time.time(), hostname="sonicServices"))
+            self.qsend("AAAAAA JOIN %d #services +" % (time.time()), False)
+            self.qsend("TMODE %d #services +o" % (time.time()))
+            #self.qsend("ENDBURST %d" % (time.time()))
+            #self.qsend("SVSMODE #services +o %sAAAAAA" % (self.sid))
     def connect(self) :
         self.sock.connect((self.rhost, self.port))
         self.onConnect()
     def onConnect(self) :
         self.send("""
-CAPAB START
-CAPAB MODULES m_allowinvite.so,m_alltime.so,m_auditorium.so,m_banexception.so,m_blockcaps.so,m_blockcolor.so,m_botmode.so,m_callerid.so,m_cban.so,m_censor.so,m_chanfilter.so, m_chanprotect.so,m_chghost.so,m_chgident.so,m_chgname.so,m_cloaking.so,m_commonchans.so,m_dccallow.so,m_deaf.so,m_delayjoin.so,m_filter.so,m_globalload.so,m_globops.so, m_hidechans.so,m_hideoper.so,m_invisible.so,m_inviteexception.so,m_joinflood.so,m_kicknorejoin.so,m_knock.so,m_messageflood.so,m_nickflood.so,m_nicklock.so,m_noctcp.so
-CAPAB MODULES m_nokicks.so,m_nonicks.so,m_nonotice.so,m_operchans.so,m_permchannels.so,m_redirect.so,m_remove.so,m_sajoin.so,m_samode.so,m_sanick.so,m_sapart.so,m_saquit.so, m_services_account.so,m_servprotect.so,m_sethost.so,m_setident.so,m_setname.so,m_showwhois.so,m_shun.so,m_silence.so,m_stripcolor.so,m_svshold.so,m_swhois.so,m_timebans.so, m_watch.so
-CAPAB CAPABILITIES :NICKMAX=32 HALFOP=1 CHANMAX=65 MAXMODES=20 IDENTMAX=12 MAXQUIT=256 MAXTOPIC=308 MAXKICK=256 MAXGECOS=129 MAXAWAY=201 IP6NATIVE=0 IP6SUPPORT=1 PROTOCOL=1201 CHALLENGE=a%%'ski?#-uo1y5u'kka PREFIX=(qaohv)~&@%%+ CHANMODES=Ibeg,k,FJLfjl,ABCDGKMNOPQRSTcimnpstu SVSPART=1
-CAPAB END
-SERVER %(servername)s %(password)s 0 %(sid)s :sonicServices
+PASS %(password)s TS 6 %(sid)s
+CAPAB :QS EX IE KLN UNKLN ENCAP TB SERVICES EUID EOPMOD
+SERVER %(servername)s 1 :sonicServices
 """ % dict(servername=self.servername, password=self.outpass, sid=self.sid))
         self.dataReceived()
     def dataReceived(self) :
